@@ -6,6 +6,12 @@ set -eu
 # 使い方: ./run.sh <subject alt name> <ip address>
 # 実行例: ./run.sh localhost 127.0.0.1
 
+if [ $# != 2 ]; then
+    echo "Usage: ./run.sh <subject alt name> <ip address>"
+    echo "Example: ./run.sh localhost 127.0.0.1"
+    exit 1
+fi
+
 HOSTNAME=$1
 IP=$2
 
@@ -21,8 +27,8 @@ docker run \
     --rm \
     -i --log-driver=none -a stdout \
     orengix \
-    cat /etc/nginx/cert/cert.crt \
-    > ${SCRIPT_DIR}/cert.crt
+    cat /etc/nginx/cert/root_cert.crt \
+    > ${SCRIPT_DIR}/root_cert.crt
 
 docker run \
     --rm \

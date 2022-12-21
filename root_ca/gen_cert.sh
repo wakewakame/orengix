@@ -23,10 +23,10 @@ if [ ! -f root_ca.crt ] || [ ! -f root_ca.key ] || [ ! -f root_ca.srl ]; then
     rm -f root_ca.crt root_ca.key root_ca.srl
 
     # 秘密鍵を生成
-    openssl genrsa -out root_ca.key 4096
+    openssl ecparam -name prime256v1 -genkey -noout -out root_ca.key
 
     # 証明書署名要求を生成
-    openssl req -new -key root_ca.key -out root_ca.csr -subj="/CN=orengix"
+    openssl req -new -sha256 -key root_ca.key -out root_ca.csr -subj="/CN=orengix"
 
     # x509 v3 用の設定ファイルを生成
     echo "basicConstraints = critical, CA:TRUE" > root_x509v3.conf
@@ -45,8 +45,8 @@ fi
 
 # 上と同様の手順でエンドエンティティ証明書を生成
 rm -f cert.crt cert.key
-openssl genrsa -out cert.key 4096
-openssl req -new -key cert.key -out cert.csr -subj="/CN=${HOSTNAME}"
+openssl ecparam -name prime256v1 -genkey -noout -out cert.key
+openssl req -new -sha256 -key cert.key -out cert.csr -subj="/CN=${HOSTNAME}"
 echo "basicConstraints = critical, CA:FALSE" > x509v3.conf
 echo "subjectAltName = DNS:${HOSTNAME}" >> x509v3.conf
 echo "extendedKeyUsage = serverAuth, clientAuth" >> x509v3.conf

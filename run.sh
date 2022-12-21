@@ -3,33 +3,38 @@ set -eu
 
 # orengix の起動
 #
-# 使い方: ./run.sh <subject alt name> <ip address>
-# 実行例: ./run.sh localhost 127.0.0.1
+# 使い方: ./run.sh <hostname>
+# 実行例: ./run.sh localhost
 
-if [ $# != 2 ]; then
-    echo "Usage: ./run.sh <subject alt name> <ip address>"
-    echo "Example: ./run.sh localhost 127.0.0.1"
+if [ $# != 1 ]; then
+    echo "Usage: ./run.sh <hostname>"
+    echo "Example: ./run.sh localhost"
     exit 1
 fi
 
 HOSTNAME=$1
-IP=$2
+SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0" || echo "$0")")" && pwd)"
 
-SCRIPT_DIR=$(cd $(dirname $0) && pwd)
-
+# 証明書発行
+# (環境の違いによる openssl の差異をなくすために Docker で動かしている)
+mkdir -p "${SCRIPT_DIR}/nginx/cert"
 docker build \
-    -t orengix \
-    --build-arg HOSTNAME=${HOSTNAME} \
-    --build-arg IP=${IP} \
-    ${SCRIPT_DIR}/
-
+    -t orengix_root_ca \
+    --build-arg UID=$(id -u) \
+    --build-arg GID=$(id -g) \
+    ${SCRIPT_DIR}/root_ca/
 docker run \
     --rm \
-    -i --log-driver=none -a stdout \
-    orengix \
-    cat /etc/nginx/cert/root_cert.crt \
-    > ${SCRIPT_DIR}/root_cert.crt
+    --mount type=bind,source="${SCRIPT_DIR}/nginx/cert",target=/home/user/cert \
+    orengix_root_ca \
+    gen_cert.sh "${HOSTNAME}"
 
+# nginx 起動
+docker build \
+    -t orengix \
+    --build-arg CERT_CRT_PATH="${SCRIPT_DIR}/cert/cert.crt" \
+    --build-arg CERT_CRT_PATH="${SCRIPT_DIR}/cert/cert.key" \
+    ${SCRIPT_DIR}/nginx/
 docker run \
     --rm \
     --name orengix \

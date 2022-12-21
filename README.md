@@ -10,13 +10,13 @@
 Docker が必要です。
 
 ```bash
-./run.sh <ホスト名> <IPアドレス>
+./run.sh <ホスト名>
 ```
 
-実行例: `./run.sh localhost 127.0.0.1`
+実行例: `./run.sh localhost`
 
 ## nginx へのアクセス
 
-nginx の起動が完了すると `orengix/root_cert.crt` にオレオレ証明書が保存されるので、これをPCにインストールします。
+nginx の起動が完了すると `orengix/nginx/cert/root_cert.crt` にオレオレ証明書が保存されるので、これをPCにインストールします。
 その後、 `https://<ホスト名>` にアクセスすると nginx のデフォルトページが表示されます。
 
